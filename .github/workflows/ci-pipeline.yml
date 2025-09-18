@@ -43,7 +43,7 @@ jobs:
           npm test
 
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # ✅ Updated to v4 to fix deprecation
         with:
           name: backend-test-results
           path: backend/test-results/
@@ -100,7 +100,9 @@ jobs:
 
       - name: Push to GitLab
         env:
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_TOKEN: ${{ secrets.GITHUBSYNCTOKEN }}  # ✅ Corrected secret name
         run: |
           git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/saniyaacharya04/3-tier-app-Deployment.git
+          git remote -v
+          git status
           git push gitlab main --force --verbose
