@@ -71,10 +71,21 @@ jobs:
         run: |
           docker build -t ${{ secrets.ECR_FRONTEND_URI }}:${{ env.IMAGE_TAG }} .
           docker push ${{ secrets.ECR_FRONTEND_URI }}:${{ env.IMAGE_TAG }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-test-results
+          path: backend/test-results/
+
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+              
+
 env:
   IMAGE_TAG: ${{ github.sha }}
-- name: Upload test results
-  uses: actions/upload-artifact@v3
-  with:
-    name: backend-test-results
-    path: backend/test-results/
