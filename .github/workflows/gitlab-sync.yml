@@ -1,28 +1,80 @@
-name: Mirror to GitLab
+name: CI Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  sync:
+  build-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
-          echo "SSH key setup complete"
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-      - name: Push to GitLab
+      - name: Install dependencies (frontend)
         run: |
-          git config --global user.name "GitHub Sync Bot"
-          git config --global user.email "saniyaacharya288@gmail.com"
-          git remote add gitlab git@gitlab.com:saniyaacharya04/3-tier-app-Deployment.git
-          git push gitlab main
+          cd frontend
+          npm install
+          npm run build
+
+      - name: Install dependencies (backend)
+        run: |
+          cd backend
+          npm install
+          npm test
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push frontend image
+        run: |
+          cd frontend
+          docker build -t ${{ secrets.ECR_FRONTEND_URI }} .
+          docker push ${{ secrets.ECR_FRONTEND_URI }}
+
+      - name: Build and push backend image
+        run: |
+          cd backend
+          docker build -t ${{ secrets.ECR_BACKEND_URI }} .
+          docker push ${{ secrets.ECR_BACKEND_URI }}
+  deploy:
+    needs: build-test
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://your-app-url
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Terraform Init & Apply
+        run: |
+          cd terra-config
+          terraform init
+          terraform apply -auto-approve
+
+      - name: Build and push frontend image with tag
+        run: |
+          docker build -t ${{ secrets.ECR_FRONTEND_URI }}:${{ env.IMAGE_TAG }} .
+          docker push ${{ secrets.ECR_FRONTEND_URI }}:${{ env.IMAGE_TAG }}
+env:
+  IMAGE_TAG: ${{ github.sha }}
+- name: Upload test results
+  uses: actions/upload-artifact@v3
+  with:
+    name: backend-test-results
+    path: backend/test-results/
