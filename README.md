@@ -196,6 +196,8 @@ DevOps Group Project Contributors:
 Feel free to fork, raise issues, or submit pull requests.  
 For questions or collaboration, reach out via GitHub Issues or Discussions.
 
+![GitHub Workflow Status](https://github.com/saniyaacharya04/3-tier-app-Deployment/actions/workflows/main.yml/badge.svg)
+
 ---
 
 ```
