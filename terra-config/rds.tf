@@ -8,11 +8,15 @@ resource "aws_security_group" "rds_sg" {
 
   # Allow MySQL from EKS node group SGs
   ingress {
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [aws_security_group.eks_nodes.id] # reference explicit SG assigned to node group
-  }
+  from_port       = 3306
+  to_port         = 3306
+  protocol        = "tcp"
+  security_groups = [
+    aws_security_group.eks_nodes.id,
+    aws_security_group.ec2_backend.id  # Add this
+  ]
+}
+
 
   egress {
     from_port   = 0
