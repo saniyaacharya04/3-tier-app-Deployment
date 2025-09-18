@@ -1,7 +1,0 @@
-name 'bastion'
-maintainer 'CSE-B DevOps'
-maintainer_email 'saniyaacharya288@gmail.com'
-license 'All Rights Reserved'
-description 'Configure and harden VM/Bastion for 3-tier deployment'
-version '0.1.0'
-chef_version '>= 18.0'

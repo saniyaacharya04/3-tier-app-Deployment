@@ -1,7 +1,0 @@
-name 'bastion'
-maintainer 'Saniya Acharya'
-maintainer_email 'saniyaacharya288@gmail.com'
-license 'All Rights Reserved'
-description 'Installs/Configures bastion server'
-version '0.1.0'
-chef_version '>= 16.0'
