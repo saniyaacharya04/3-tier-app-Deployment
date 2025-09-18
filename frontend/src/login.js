@@ -10,9 +10,13 @@ export default function Login({ onLogin }) {
     e.preventDefault();
     try {
       const res = await loginUser({ email, password });
-      if (res.data?.user) {
-        localStorage.setItem("user_id", res.data.user.id); // ✅ store user_id
-        onLogin(res.data.user);
+
+      if (res.data?.user && res.data?.token) {
+        // store token and user in localStorage
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+
+        onLogin(res.data.user); // update state
       } else {
         setError("Invalid response from server");
       }
