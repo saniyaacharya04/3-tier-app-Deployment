@@ -4,7 +4,7 @@ const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = 'your_secret_key_here'; // ideally move to .env
+const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key_here'; // move to .env in production
 
 // Register
 router.post('/register', async (req, res) => {
@@ -33,7 +33,6 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
-    // create JWT
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
 
     res.json({ message: 'Login successful', token, user: { id: user.id, name: user.name, email: user.email } });
@@ -43,7 +42,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Middleware to verify token
+// Middleware
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -56,7 +55,7 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// Example protected route
+// Protected route
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT id, name, email FROM users WHERE id = ?', [req.user.id]);

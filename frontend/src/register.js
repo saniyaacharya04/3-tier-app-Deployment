@@ -3,15 +3,32 @@ import { useNavigate } from "react-router-dom";
 import { registerUser } from "./services/authServices";
 
 function Register() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const { name, email, password } = formData;
+
+    if (!name || !email || !password) {
+      setError("All fields are required.");
+      return;
+    }
+
     try {
-      await registerUser({ email, password });
+      await registerUser({ name, email, password });
       alert("✅ Registration successful! Please login.");
       navigate("/login");
     } catch (err) {
@@ -25,23 +42,33 @@ function Register() {
       <h2>Register</h2>
       <form onSubmit={handleSubmit}>
         <input
+          type="text"
+          name="name"
+          placeholder="Name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+        />
+        <input
           type="email"
+          name="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={formData.email}
+          onChange={handleChange}
           required
         />
         <input
           type="password"
+          name="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={formData.password}
+          onChange={handleChange}
           required
         />
         <button type="submit">Register</button>
       </form>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <p onClick={() => navigate("/login")} style={{ cursor: "pointer" }}>
+      <p onClick={() => navigate("/login")} style={{ cursor: "pointer", color: "#007bff" }}>
         Already have an account? Login
       </p>
     </div>

@@ -36,17 +36,30 @@ jobs:
           npm install
           npm run build
 
-      - name: Install dependencies (backend)
-        run: |
-          cd backend
-          npm install
-          npm test
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4  # ✅ Updated to v4 to fix deprecation
+      - name: Run backend tests with Docker Compose
+        uses: adambirds/docker-compose-action@v1.5.0
         with:
-          name: backend-test-results
-          path: backend/test-results/
+          compose-file: "./docker-compose.yml"
+          up-flags: "--build"
+          down-flags: "--volumes"
+          test-container: "backend"
+          test-command: "npm test -- --coverage"
+
+      - name: Upload backend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+
+      - name: Publish Coverage Summary
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: backend/coverage/cobertura-coverage.xml
+          badge: true
+          fail_below_min: false
+          format: markdown
+          output: both
+          thresholds: '50 75'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -86,6 +99,18 @@ jobs:
           terraform init
           terraform apply -auto-approve
 
+      - name: Redeploy on EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd ~/backend
+            git pull origin main
+            npm install
+            pm2 restart backend || npm start
+
   mirror-to-gitlab:
     needs: deploy
     runs-on: ubuntu-latest
@@ -100,9 +125,7 @@ jobs:
 
       - name: Push to GitLab
         env:
-          GITLAB_TOKEN: ${{ secrets.GITHUBSYNCTOKEN }}  # ✅ Corrected secret name
+          GITLAB_TOKEN: ${{ secrets.GITHUBSYNCTOKEN }}
         run: |
           git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/saniyaacharya04/3-tier-app-Deployment.git
-          git remote -v
-          git status
           git push gitlab main --force --verbose

@@ -8,8 +8,8 @@ import Tasks from "./Tasks";
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Check for stored token and user on app load
   useEffect(() => {
     const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
@@ -18,21 +18,29 @@ function App() {
       try {
         const { exp } = jwtDecode(token);
         if (Date.now() >= exp * 1000) {
-          // Token expired
           localStorage.clear();
           setUser(null);
+          window.location.href = "/login";
         } else if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser?.id) {
+            setUser(parsedUser);
+          } else {
+            console.warn("User object missing ID");
+            localStorage.clear();
+            window.location.href = "/login";
+          }
         }
       } catch (err) {
         console.error("Invalid token:", err);
         localStorage.clear();
         setUser(null);
+        window.location.href = "/login";
       }
     }
+    setLoading(false);
   }, []);
 
-  // Keep user in sync with localStorage
   useEffect(() => {
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
@@ -41,7 +49,6 @@ function App() {
     }
   }, [user]);
 
-  // Logout handler
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -53,23 +60,31 @@ function App() {
 
   return (
     <Router>
-      {/* Optional Navbar */}
-      {/* <Navbar user={user} onLogout={handleLogout} /> */}
-
       <Routes>
         <Route path="/login" element={<Login onLogin={setUser} />} />
         <Route path="/register" element={<Register />} />
         <Route
           path="/tasks"
           element={
-            isAuthenticated ? (
+            loading ? (
+              <div>Loading...</div>
+            ) : isAuthenticated && user?.id ? (
               <Tasks user={user} onLogout={handleLogout} />
             ) : (
               <Navigate to="/login" replace />
             )
           }
         />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route
+          path="*"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/tasks" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
       </Routes>
     </Router>
   );

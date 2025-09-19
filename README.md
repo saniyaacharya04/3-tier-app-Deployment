@@ -1,4 +1,4 @@
-Absolutely, Saniya — here’s a polished and updated `README.md` for your **🚀 CSE-B DevOps Group Project: Automated 3-Tier Deployment**, tailored for clarity, professionalism, and GitHub presentation.
+**🚀 CSE-B DevOps Group Project: Automated 3-Tier Deployment**, tailored for clarity, professionalism, and GitHub presentation.
 
 ---
 

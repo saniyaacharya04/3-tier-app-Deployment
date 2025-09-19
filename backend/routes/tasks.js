@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Update task by ID
+// Update task
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { title, description, status } = req.body;
@@ -56,7 +56,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete task by ID
+// Delete task
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   try {
