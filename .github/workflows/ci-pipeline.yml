@@ -121,11 +121,13 @@ jobs:
       - name: Set up Git config
         run: |
           git config --global user.name "Saniya Acharya"
-          git config --global user.email "saniyaacharya288"
+          git config --global user.email "saniya@example.com"
 
       - name: Push to GitLab
         env:
           GITLAB_TOKEN: ${{ secrets.GITHUBSYNCTOKEN }}
         run: |
-          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/saniyaacharya04/3-tier-app-Deployment.git
+          git remote | grep -q gitlab || \
+            git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/saniyaacharya04/3-tier-app-Deployment.git
+          git remote set-url gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/saniyaacharya04/3-tier-app-Deployment.git
           git push gitlab main --force --verbose
