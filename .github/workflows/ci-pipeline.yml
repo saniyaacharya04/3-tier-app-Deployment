@@ -17,7 +17,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          persist-credentials: false  # Prevents Git token issues
+          persist-credentials: false
+          submodules: false  # ✅ Prevents submodule errors
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
